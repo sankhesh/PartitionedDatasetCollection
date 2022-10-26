@@ -1,21 +1,21 @@
 #include <vtkActor.h>
 #include <vtkCamera.h>
+#include <vtkCompositeDataPipeline.h>
+#include <vtkIdFilter.h>
 #include <vtkNew.h>
+#include <vtkPartitionedDataSet.h>
+#include <vtkPartitionedDataSetCollection.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
-#include <vtkPartitionedDataSetCollection.h>
-#include <vtkPartitionedDataSet.h>
 #include <vtkSphereSource.h>
-#include <vtkIdFilter.h>
 #include <vtkXMLPartitionedDataSetCollectionWriter.h>
-#include <vtkCompositeDataPipeline.h>
 
-int main(int, char* [])
+int main(int, char*[])
 {
-  vtkCompositeDataPipeline* exec = vtkCompositeDataPipeline::New();
-  vtkAlgorithm::SetDefaultExecutivePrototype(exec);
-  exec->Delete();
+  // vtkCompositeDataPipeline* exec = vtkCompositeDataPipeline::New();
+  // vtkAlgorithm::SetDefaultExecutivePrototype(exec);
+  // exec->Delete();
   vtkNew<vtkPartitionedDataSetCollection> pdc;
   for (unsigned int part = 0; part < 5; ++part)
   {
@@ -34,31 +34,32 @@ int main(int, char* [])
 
   std::cout << "Input Class: " << pdc->GetClassName() << std::endl;
 
-  // vtkNew<vtkCompositeDataPipeline> cdp;
+  vtkNew<vtkCompositeDataPipeline> cdp;
   vtkNew<vtkIdFilter> idF;
-  // idF->SetExecutive(cdp);
-  idF->SetInputData(pdc->GetPartition(0, 0));
+  idF->SetExecutive(cdp);
+  idF->SetInputData(pdc);
   idF->SetPointIds(true);
-  idF->SetPointIdsArrayName("PID");
   idF->FieldDataOn();
-
 
   idF->Update();
 
-  std::cout << "Output Class " << std::endl;
-  if (idF->GetOutput())
+  auto out = idF->GetOutputDataObject(0);
+  std::cout << "ID Filter Executive: " << idF->GetExecutive()->GetClassName() << std::endl;
+  if (idF->GetOutputDataObject(0))
   {
-    std::cout << "Output Class: " << idF->GetOutput()->GetClassName() << std::endl;
+    std::cout << "Output Class: " << idF->GetOutputDataObject(0)->GetClassName() << std::endl;
   }
   else
   {
     std::cout << "No luck" << std::endl;
   }
 
-
   // vtkNew<vtkXMLPartitionedDataSetCollectionWriter> w;
-  // w->SetFileName("Test.vtpc");
+  // w->SetFileName("Input.vtpc");
   // w->SetInputData(pdc);
+  // w->Write();
+  // w->SetFileName("Output.vtpc");
+  // w->SetInputData(idF);
   // w->Write();
 
   return EXIT_SUCCESS;
